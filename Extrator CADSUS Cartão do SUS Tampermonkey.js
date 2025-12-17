@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Extrator SUS (Ordem Corrigida + Botão Texto)
+// @name         Extrator SUS (Esquerda)
 // @namespace    http://tampermonkey.net/
-// @version      3.1
-// @description  Botão "Capturar Dados" -> Extrai CPF, Nome e Data (nesta ordem).
+// @version      3.2
+// @description  Botão "Capturar Dados" no lado ESQUERDO da tela.
 // @author       SeuNome
 // @match        https://cadastro.saude.gov.br/*
 // @grant        GM_addStyle
@@ -13,20 +13,20 @@
     'use strict';
 
     // ============================================================================
-    // 1. ESTILOS (CSS) - Ajustado para botão com texto
+    // 1. ESTILOS (CSS) - Posicionamento na ESQUERDA (Left)
     // ============================================================================
     const styles = `
-        /* Botão Flutuante (Agora com texto) */
+        /* Botão Flutuante (Lado Esquerdo) */
         #tm-extract-btn {
             position: fixed;
             bottom: 20px;
-            right: 20px;
+            left: 20px; /* Mudado de right para left */
             z-index: 99999;
             background-color: #0056b3;
             color: white;
             border: none;
-            border-radius: 30px; /* Arredondado estilo "Pílula" */
-            padding: 0 24px;     /* Espaçamento interno lateral */
+            border-radius: 30px;
+            padding: 0 24px;
             height: 50px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             cursor: pointer;
@@ -46,11 +46,11 @@
             box-shadow: 0 6px 15px rgba(0,0,0,0.4);
         }
 
-        /* Modal Container */
+        /* Modal Container (Lado Esquerdo) */
         #tm-modal-overlay {
             position: fixed;
-            bottom: 85px; /* Um pouco acima do botão */
-            right: 20px;
+            bottom: 85px; /* Acima do botão */
+            left: 20px;   /* Mudado de right para left */
             width: 360px;
             background-color: #ffffff;
             border-radius: 10px;
@@ -105,7 +105,7 @@
     }
 
     // ============================================================================
-    // 2. LÓGICA
+    // 2. LÓGICA DE EXTRAÇÃO
     // ============================================================================
 
     const getTextBySelector = (selector) => {
@@ -135,14 +135,12 @@
     // ============================================================================
 
     const createUI = () => {
-        // CRIA O BOTÃO COM TEXTO
         const btn = document.createElement('button');
         btn.id = 'tm-extract-btn';
-        btn.innerText = 'Capturar Dados'; // Texto alterado
+        btn.innerText = 'Capturar Dados';
         btn.onclick = toggleModal;
         document.body.appendChild(btn);
 
-        // CRIA O MODAL
         const modal = document.createElement('div');
         modal.id = 'tm-modal-overlay';
         modal.innerHTML = `
@@ -168,23 +166,22 @@
             return;
         }
 
-        // --- CONFIGURAÇÃO E ORDEM DOS CAMPOS ---
-        // Alterada a ordem do array para: CPF -> Nome -> Data
+        // ORDEM: CPF -> Nome -> Data
         const fields = [
             {
                 key: 'cpf',
                 label: 'CPF (Somente Números)',
-                selector: '#cpf' // ID
+                selector: '#cpf'
             },
             {
                 key: 'nome',
                 label: 'Nome Completo',
-                selector: '.resultadoNome' // CLASSE
+                selector: '.resultadoNome'
             },
             {
                 key: 'dataNascimento',
                 label: 'Data de Nascimento',
-                selector: '.resultadoDataNascimento' // CLASSE
+                selector: '.resultadoDataNascimento'
             }
         ];
 
@@ -193,7 +190,6 @@
         fields.forEach(field => {
             let value = getTextBySelector(field.selector);
 
-            // Se for CPF, remove pontuação
             if (field.key === 'cpf' && value) {
                 value = value.replace(/\D/g, '');
             }
@@ -201,7 +197,6 @@
             const row = document.createElement('div');
             row.className = 'tm-data-row';
 
-            // Se não tiver valor, desabilita visualmente o botão
             const btnState = value ? '' : 'style="background-color:#ccc;cursor:not-allowed"';
 
             row.innerHTML = `
@@ -223,7 +218,6 @@
         modal.style.display = 'flex';
     };
 
-    // Inicialização
     setTimeout(() => {
         createUI();
     }, 1500);
